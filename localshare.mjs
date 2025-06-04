@@ -155,23 +155,26 @@ async function routLocal(req, res, pathname) {
               gap: 15px;
             }
             .file-item {
+              display: flex;
+              align-items: center;
+              justify-content: center;
               background-color: white;
               border: 1px solid #ddd;
               border-radius: 5px;
               padding: 15px;
               width: 200px;
+              height: 50px;
               text-align: center;
               box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            }
-            .file-item a {
-              color: #333;
               text-decoration: none;
+              color: #333;
+              margin: 5px;
             }
-            .file-item a:hover {
-              color: #007bff;
-            }
-            .directory {
+            .file-item.directory {
               background-color: #fff3cd;
+            }
+            .file-item:hover {
+              color: #007bff;
             }
           </style>
         </head>
@@ -192,9 +195,7 @@ async function routLocal(req, res, pathname) {
         let isDir = subStats && subStats.isDirectory();
         let className = isDir ? "file-item directory" : "file-item";
         res.write(`
-          <div class="${className}">
-            <a href="${pathname + '/' + data[i]}">${data[i]}</a>
-          </div>
+          <a href="${pathname + '/' + data[i]}" class="${className}">${data[i]}</a>
         `);
       }
       res.end(`
@@ -277,6 +278,13 @@ function renderHome(req, res) {
 }
 
 function renderClient(req, res) {
+  const query = url.parse(req.url, true).query;
+  let message = '';
+  if (query.upload === 'success') {
+    message = '<p style="color: green;">File uploaded successfully.</p>';
+  } else if (query.upload === 'error') {
+    message = '<p style="color: red;">Error uploading file.</p>';
+  }
   res.writeHead(200, { "content-type": "text/html" });
   res.end(`
     <html lang="en">
@@ -342,6 +350,7 @@ function renderClient(req, res) {
       </div>
       <div class="container">
         <div class="upload-box">
+          ${message}
           <form action="/client/upload" method="post" enctype="multipart/form-data">
             <label for="file">Upload a file to the local PC:</label>
             <input id="file" type="file" name="file" />
@@ -410,6 +419,8 @@ function routUpload(req, res) {
       return;
     }
 
+    let uploadStatus = 'error'; // Default to error
+
     for (let i = 0; i < partStarts.length; i++) {
       const partStart = partStarts[i] + boundaryBuffer.length;
       const partEnd = i < partStarts.length - 1 ? partStarts[i + 1] : closingIndex;
@@ -434,22 +445,24 @@ function routUpload(req, res) {
         if (match) {
           const name = match[1];
           const filename = match[2];
-          if (name === "file" && filename) {
+          if (name === "file" && filename && filename.trim() !== "") {
             const safeFilename = path.basename(filename);
             const uploadPath = path.join("uploads", safeFilename);
             try {
               await fs.mkdir("uploads", { recursive: true });
               await fs.writeFile(uploadPath, contentBuffer);
               console.log(`File uploaded: ${uploadPath}`);
+              uploadStatus = 'success';
             } catch (err) {
               console.error(`Error saving file: ${err}`);
+              uploadStatus = 'error';
             }
           }
         }
       }
     }
 
-    res.writeHead(302, { "Location": "/client" });
+    res.writeHead(302, { "Location": `/client?upload=${uploadStatus}` });
     res.end();
   });
 }
