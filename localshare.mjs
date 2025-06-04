@@ -11,15 +11,48 @@ const notFound = `
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>404</title>
+    <title>404 - Page Not Found</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+        color: #333;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+      .content {
+        text-align: center;
+        padding: 20px;
+        background-color: white;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      }
+      h1 {
+        font-size: 48px;
+        margin: 0 0 10px;
+      }
+      p {
+        font-size: 18px;
+        margin: 0 0 20px;
+      }
+      a {
+        color: #007bff;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
   </head>
-  <style>
-    h1 {
-      text-align: center;
-    }
-  </style>
   <body>
-    <h1>404 <br> Not Valid Path</h1>
+    <div class="content">
+      <h1>404</h1>
+      <p>Page not found. <a href="/">Return to Home</a></p>
+    </div>
   </body>
 </html>`;
 
@@ -70,72 +103,103 @@ async function routLocal(req, res, pathname) {
       let preDir = "";
       let mappedDir = filePath.slice(2).split("/").map((value, i) => {
         preDir += "/" + encodeURIComponent(value);
-        return `<a class="nav" href="/local${preDir}">${value}</a>`;
+        return `<a class="nav-link" href="/local${preDir}">${value}</a>`;
       }).join(" / ");
 
       res.write(`
-        <html>
+        <html lang="en">
         <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Local Share</title>
+          <title>Local Files</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              background-color: #f0f0f0;
+              color: #333;
+              margin: 0;
+              padding: 0;
+            }
+            .header {
+              background-color: #007bff;
+              color: white;
+              padding: 15px;
+              text-align: center;
+            }
+            .header a {
+              color: white;
+              text-decoration: none;
+              font-size: 24px;
+            }
+            .container {
+              max-width: 1200px;
+              margin: 20px auto;
+              padding: 0 15px;
+            }
+            .breadcrumbs {
+              background-color: #e9ecef;
+              padding: 10px;
+              border-radius: 5px;
+              margin-bottom: 20px;
+            }
+            .nav-link {
+              color: #007bff;
+              text-decoration: none;
+            }
+            .nav-link:hover {
+              text-decoration: underline;
+            }
+            .file-list {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 15px;
+            }
+            .file-item {
+              background-color: white;
+              border: 1px solid #ddd;
+              border-radius: 5px;
+              padding: 15px;
+              width: 200px;
+              text-align: center;
+              box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            }
+            .file-item a {
+              color: #333;
+              text-decoration: none;
+            }
+            .file-item a:hover {
+              color: #007bff;
+            }
+            .directory {
+              background-color: #fff3cd;
+            }
+          </style>
         </head>
-        <style>
-          .home {
-            text-align: center;
-            background-color: rgb(175, 175, 175);
-            color: white;
-          }
-          a {
-            text-decoration: none;
-          }
-          body {
-            background-color: rgb(195, 195, 195);
-            margin: 0.5rem 1rem;
-          }
-          .nav {
-            background-color: rgb(250, 223, 149);
-            border-radius: 3px;
-            padding: 0 1px;
-            margin: 1px;
-            border-bottom: 1px solid gray;
-          }
-          .files {
-            background-color: rgb(246, 241, 241);
-            border-radius: 3px;
-            padding: .1rem .5rem;
-            margin: .5rem;
-            width: max-content;
-          }
-          h4 {
-            background-color: rgb(164, 164, 164);
-            padding: .2rem;
-            border-radius: 3px;
-          }
-          .yellow {
-            background-color: rgb(250, 247, 89);
-          }
-          .files>a {
-            color: black;
-          }
-        </style>
         <body>
-          <h1 class="home"><a href="/">LocalShare</a></h1>
-          <h4>${'./<a class="nav" href="/local">local</a>' + ' / ' + mappedDir}</h4>
+          <div class="header">
+            <a href="/">LocalShare</a>
+          </div>
+          <div class="container">
+            <div class="breadcrumbs">
+              <a class="nav-link" href="/local">local</a> / ${mappedDir}
+            </div>
+            <div class="file-list">
       `);
 
       for (let i = 0; i < data.length; i++) {
         let subPath = filePath + "/" + data[i];
         let subStats = await checkStats(subPath);
-        let color = "white";
-        if (subStats && subStats.isDirectory()) color = "yellow";
+        let isDir = subStats && subStats.isDirectory();
+        let className = isDir ? "file-item directory" : "file-item";
         res.write(`
-          <h3 class="files ${color}">
+          <div class="${className}">
             <a href="${pathname + '/' + data[i]}">${data[i]}</a>
-          </h3>
+          </div>
         `);
       }
       res.end(`
+            </div>
+          </div>
         </body>
         </html>
       `);
@@ -163,30 +227,50 @@ function renderHome(req, res) {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Local Share</title>
+      <title>LocalShare</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          background-color: #f0f0f0;
+          color: #333;
+          margin: 0;
+          padding: 0;
+        }
+        .container {
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 50px 15px;
+          text-align: center;
+        }
+        h1 {
+          font-size: 32px;
+          margin-bottom: 20px;
+        }
+        p {
+          font-size: 16px;
+          margin-bottom: 30px;
+        }
+        .btn {
+          display: inline-block;
+          padding: 10px 20px;
+          background-color: #007bff;
+          color: white;
+          text-decoration: none;
+          border-radius: 5px;
+          margin: 5px;
+        }
+        .btn:hover {
+          background-color: #0056b3;
+        }
+      </style>
     </head>
-    <style>
-      h1 {
-        text-align: center;
-      }
-      body {
-        margin: 2rem;
-        margin-top: 1rem;
-        background-color: rgb(175, 175, 175);
-        text-align: center;
-      }
-      a {
-        text-decoration: none;
-        background: lightgray;
-        border-radius: 3px;
-        padding: .2rem;
-      }
-    </style>
     <body>
-      <h1>Local Share</h1>
-      <h3><a href="/local">Get Local files (pc on which server running).</a></h3>
-      <h3><a href="/client">Send Client files to Local.</a></h3>
-      <p>Share files seamlessly between your devices on local network.</p>
+      <div class="container">
+        <h1>LocalShare</h1>
+        <p>Share files easily between devices on your local network.</p>
+        <a href="/local" class="btn">Browse Local Files</a>
+        <a href="/client" class="btn">Upload Files</a>
+      </div>
     </body>
     </html>
   `);
@@ -197,43 +281,74 @@ function renderClient(req, res) {
   res.end(`
     <html lang="en">
     <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>Local Share</title>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>LocalShare - Upload</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          background-color: #f0f0f0;
+          color: #333;
+          margin: 0;
+          padding: 0;
+        }
+        .header {
+          background-color: #007bff;
+          color: white;
+          padding: 15px;
+          text-align: center;
+        }
+        .header a {
+          color: white;
+          text-decoration: none;
+          font-size: 24px;
+        }
+        .container {
+          max-width: 600px;
+          margin: 20px auto;
+          padding: 0 15px;
+        }
+        .upload-box {
+          background-color: white;
+          border: 1px solid #ddd;
+          border-radius: 5px;
+          padding: 20px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        label {
+          display: block;
+          margin-bottom: 10px;
+          font-size: 16px;
+        }
+        input[type="file"] {
+          margin-bottom: 20px;
+        }
+        input[type="submit"] {
+          background-color: #007bff;
+          color: white;
+          border: none;
+          padding: 10px 20px;
+          border-radius: 5px;
+          cursor: pointer;
+        }
+        input[type="submit"]:hover {
+          background-color: #0056b3;
+        }
+      </style>
     </head>
-    <style>
-      h1 {
-        text-align: center;
-        background: lightgray;
-        border-radius: 3px;
-        padding: 0.4rem;
-      }
-      body {
-        margin: 2rem;
-        margin-top: 0.5rem;
-        background-color: rgb(243, 220, 255);
-        text-align: center;
-      }
-      a {
-        text-decoration: none;
-      }
-      form {
-        font-size: 1.5rem;
-      }
-      input {
-        font-size: 1rem;
-        border-radius: 3px;
-        margin: 0.4rem;
-      }
-    </style>
     <body>
-      <h1><a href="/">LocalShare</a></h1>
-      <form action="/client/upload" method="post" enctype="multipart/form-data">
-        <label for="filename">Please select a file you want to send to Local pc.<br /><br />
-        <input id="filename" type="file" name="file" /></label>
-        <br />
-        <input type="submit" value="Upload" />
-      </form>
+      <div class="header">
+        <a href="/">LocalShare</a>
+      </div>
+      <div class="container">
+        <div class="upload-box">
+          <form action="/client/upload" method="post" enctype="multipart/form-data">
+            <label for="file">Upload a file to the local PC:</label>
+            <input id="file" type="file" name="file" />
+            <input type="submit" value="Upload" />
+          </form>
+        </div>
+      </div>
     </body>
     </html>
   `);
@@ -304,7 +419,7 @@ function routUpload(req, res) {
       if (headerEndIndex === -1) continue;
 
       const headersBuffer = part.slice(0, headerEndIndex);
-      const contentBuffer = part.slice(headerEndIndex + 4, part.length - 2); // Exclude trailing \r\n
+      const contentBuffer = part.slice(headerEndIndex + 4, part.length - 2);
 
       const headersString = headersBuffer.toString("utf8");
       const headers = {};
@@ -320,7 +435,7 @@ function routUpload(req, res) {
           const name = match[1];
           const filename = match[2];
           if (name === "file" && filename) {
-            const safeFilename = path.basename(filename); // Prevent directory traversal
+            const safeFilename = path.basename(filename);
             const uploadPath = path.join("uploads", safeFilename);
             try {
               await fs.mkdir("uploads", { recursive: true });
