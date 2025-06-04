@@ -22,8 +22,10 @@ function handleRouts(req, res) {
   }
   else if (pathname.startsWith("/local")) {
     routLocal(req, res);
-  } else if (pathname.startsWith("/client")) {
+  } else if (pathname === "/client") {
     renderClient(req, res);
+  } else if (pathname.startsWith("/client/upload")) {
+    routUpload(req, res);
   } else {
     res.end(`
       <html lang="en">
@@ -75,19 +77,23 @@ async function routLocal(req, res) {
         <style>
            .home {
               text-align : center;
-              background-color :rgb(26, 25, 25) ;
+              background-color :rgb(175, 175, 175) ;
               color : white;
   
             }
             a {
               text-decoration : none;
             }
+            body {
+              background-color :rgb(195, 195, 195);
+              margin: 0.5rem 1rem;
+            }
         </style>
         <body>
         <h1 class = "home">
          <a  href="/" >LocalShare</a>
         </h1>
-        <h2>${path}</h2>
+        <h4>${path}</h4>
         `);
         for (let i = 0; i < data.length; i++) {
           res.write(`
@@ -131,19 +137,24 @@ function renderHome(req, res) {
   }
   body {
     margin: 2rem;
-    background-color: purple;
+    margin-top: 1rem;
+    background-color: rgb(175, 175, 175);
+    text-align: center;
   }
   a {
     text-decoration: none;
     background: lightgray;
     border-radius: 3px;
-    padding: 0.4rem;
+    padding: .2rem;
+    
   }
 </style>
 <body>
   <h1>Local Share</h1>
   <h3>
-    <a href="/local" >Get Local files (pc on which server runing).</a><br><br>
+    <a href="/local" >Get Local files (pc on which server runing).</a>
+  </h3>
+  <h3>
     <a href="/client"> Send Client files to Local.</a>
   </h3>
   <p>Share files semelessly between you your devices on local network.<p>
@@ -193,26 +204,13 @@ function renderClient(req, res) {
         <input id="filename" type="file"
       /></label>
       <br />
-      <input onclick="uploadFile()" type="submit" />
     </form>
-    <script>
-      function uploadFile() {
-        let fileInput = document.getElementById("filename");
-        const file = fileInput.files[0];
-        if (!file) alert("Please Slect a file first");
-        let tofech = "/client/upload?filename="+ file.name;
-        console.log(tofech)
-        fetch(tofech, {
-          method: "POST",
-          body: file,
-        })
-          .then((res) => res.text())
-          .catch((err) => alert(err));
-      }
-    </script>
+    <p> Still in work</p>
   </body>
 </html>
 `)
 }
+
+
 server.listen(4000);
 console.log("4000 listing");
