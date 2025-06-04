@@ -1,0 +1,14 @@
+{
+  "name": "localshare",
+  "version": "1.0.0",
+  "description": "share files between pc and mobile or other pc connected to same network",
+  "main": "localshare.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "localshare"
+  ],
+  "author": "Usman Ghani",
+  "license": "MIT"
+}
