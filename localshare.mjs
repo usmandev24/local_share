@@ -7,6 +7,22 @@ import { stat } from "node:fs/promises";
 
 const server = http.createServer();
 const port = 4000;
+const notFound = `
+      <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>404</title>
+  </head>
+  <style>
+  h1 {
+  text-align  : center;
+  }
+  </style>
+  <body>
+    <h1> 404 <br> Not valid Path</h1>
+  </body>
+</html>`
 server.on("request", (req, res) => {
   if (req.url == "/favicon.ico") {
     res.end();
@@ -27,25 +43,11 @@ function handleRouts(req, res) {
   } else if (pathname.startsWith("/client/upload")) {
     routUpload(req, res);
   } else {
-    res.end(`
-      <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>404</title>
-  </head>
-  <style>
-  h1 {
-  text-align  : center;
-  }
-  </style>
-  <body>
-    <h1> 404 <br> Not valid Path</h1>
-  </body>
-</html>`);
+    res.end(notFound);
 console.log("404  Forbiddin GET: " + req.url);
   }
 }
+
 
 async function routLocal(req, res) {
   const reqURL = req.url;
@@ -55,7 +57,13 @@ async function routLocal(req, res) {
   } else path = "." + decodeURIComponent(reqURL.slice(6));
   
   let stats = await checkStats(path);
-  if (stats.isDirectory()) {
+  let isdir ;
+  try {
+    isdir = stats.isDirectory();
+  } catch {
+    isdir = false;
+  }
+  if (isdir) {
     let dir = fs
       .readdir(path)
       .then(async (data) => {
@@ -132,7 +140,9 @@ async function routLocal(req, res) {
           let color = "white";
           try {
             if (stats.isDirectory()) color = "yellow"
-          } catch {}
+          } catch {
+
+          }
           res.write(`
           <h3 class = "files ${color}">
           <a  href="${base + "/" + data[i]}">${data[i]} </a>
@@ -156,7 +166,8 @@ async function routLocal(req, res) {
         console.log("200  OK  GET: "+req.url);
       })
       .catch((error) => {
-        res.end("Error");
+        res.end(notFound);
+        console.log("404  Forbiddin GET: " + req.url);
       });
   }
 }
@@ -255,8 +266,8 @@ async function checkStats(path) {
   try {
     stats = await stat(path);
   } catch (error) {
-    if (error.code != "ENOENT") throw error;
-    else return { status: 404, body: "File not found" };
+    
+    return { status: 404, body: "File not found" };
   }
   return stats
 }
