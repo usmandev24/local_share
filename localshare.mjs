@@ -16,7 +16,7 @@ server.on("request", (req, res) => {
 function handleRouts(req, res) {
   let path = url.parse(req.url, true);
   let pathname = path.pathname;
-  console.log(pathname);
+
   if (pathname === "/") {
     renderHome(req, res);
   }
@@ -52,20 +52,20 @@ async function routLocal(req, res) {
   if (reqURL === "/local") {
     path = "." + decodeURIComponent(reqURL.slice(6)) + "/";
   } else path = "." + decodeURIComponent(reqURL.slice(6));
-  let stats;
-  try {
-    stats = await stat(path);
-  } catch (error) {
-    if (error.code != "ENOENT") throw error;
-    else return { status: 404, body: "File not found" };
-  }
+  let stats = await checkStats(path);
   if (stats.isDirectory()) {
     let dir = fs
       .readdir(path)
-      .then((data) => {
+      .then(async (data) => {
         res.writeHead(200, { "content-type": "text/html" });
         let base = reqURL;
         if (reqURL === "/local") base = "local";
+        let preDir = "";
+        let mapedDir = path.slice(2).split("/");
+        mapedDir = mapedDir.map((value, i) => {
+          preDir +="/"+ encodeURIComponent(value);
+          return `<a class ="nav" href = "${"/local" + preDir}">${value}</a>`;
+        }).join(" / ");
         res.write(`
         <html>
         <head>
@@ -79,26 +79,60 @@ async function routLocal(req, res) {
               text-align : center;
               background-color :rgb(175, 175, 175) ;
               color : white;
-  
             }
             a {
               text-decoration : none;
+              
             }
             body {
               background-color :rgb(195, 195, 195);
               margin: 0.5rem 1rem;
+            }
+            .nav {
+              background-color:rgb(250, 223, 149);
+              border-radius: 3px;
+              padding:0 1px;
+              padding-bottom : 0;
+              margin: 1px;
+              border-bottom : 1px solid gray;
+              
+            }
+            .files  {
+              background-color:rgb(246, 241, 241);
+              border-radius: 3px;
+              padding: .1rem .5rem;
+              margin: .5rem;
+              margin-left: .5rem;
+              width: max-content;
+            }
+            h4 {
+             background-color: rgb(164, 164, 164);
+             padding :.2rem;
+             border-radius: 3px;
+            }
+            .yellow {
+              background-color:rgb(250, 247, 89);
+              
+            }
+            .files>a {
+              color:black;
             }
         </style>
         <body>
         <h1 class = "home">
          <a  href="/" >LocalShare</a>
         </h1>
-        <h4>${path}</h4>
+        <h4>${'./<a class ="nav" href="/local"> local </a>'+' / '+mapedDir}</h4>
         `);
         for (let i = 0; i < data.length; i++) {
+          let stats = await checkStats(path+"/"+data[i]);
+          let color = "white";
+          try {
+            if (stats.isDirectory()) color = "yellow"
+          } catch {}
           res.write(`
-          <h3>
-          <a href="${base + "/" + data[i]}">${data[i]} </a>
+          <h3 class = "files ${color}">
+          <a  href="${base + "/" + data[i]}">${data[i]} </a>
           </h3>`);
         }
         res.end(`
@@ -205,12 +239,21 @@ function renderClient(req, res) {
       /></label>
       <br />
     </form>
-    <p> Still in work</p>
+    <h3> Still in work.... </h3>
   </body>
 </html>
 `)
 }
 
-
+async function checkStats(path) {
+  let stats;
+  try {
+    stats = await stat(path);
+  } catch (error) {
+    if (error.code != "ENOENT") throw error;
+    else return { status: 404, body: "File not found" };
+  }
+  return stats
+}
 server.listen(4000);
 console.log("4000 listing");
