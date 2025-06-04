@@ -6,9 +6,9 @@ import * as url from "node:url";
 import { stat } from "node:fs/promises";
 
 const server = http.createServer();
-
+const port = 4000;
 server.on("request", (req, res) => {
-  if (req.url == "./favicon.ico") {
+  if (req.url == "/favicon.ico") {
     res.end();
   } else handleRouts(req, res);
 });
@@ -42,7 +42,8 @@ function handleRouts(req, res) {
   <body>
     <h1> 404 <br> Not valid Path</h1>
   </body>
-</html>`)
+</html>`);
+console.log("404  Forbiddin GET: " + req.url);
   }
 }
 
@@ -52,6 +53,7 @@ async function routLocal(req, res) {
   if (reqURL === "/local") {
     path = "." + decodeURIComponent(reqURL.slice(6)) + "/";
   } else path = "." + decodeURIComponent(reqURL.slice(6));
+  
   let stats = await checkStats(path);
   if (stats.isDirectory()) {
     let dir = fs
@@ -61,11 +63,13 @@ async function routLocal(req, res) {
         let base = reqURL;
         if (reqURL === "/local") base = "local";
         let preDir = "";
+
         let mapedDir = path.slice(2).split("/");
         mapedDir = mapedDir.map((value, i) => {
           preDir +="/"+ encodeURIComponent(value);
           return `<a class ="nav" href = "${"/local" + preDir}">${value}</a>`;
         }).join(" / ");
+
         res.write(`
         <html>
         <head>
@@ -82,7 +86,6 @@ async function routLocal(req, res) {
             }
             a {
               text-decoration : none;
-              
             }
             body {
               background-color :rgb(195, 195, 195);
@@ -112,7 +115,6 @@ async function routLocal(req, res) {
             }
             .yellow {
               background-color:rgb(250, 247, 89);
-              
             }
             .files>a {
               color:black;
@@ -124,6 +126,7 @@ async function routLocal(req, res) {
         </h1>
         <h4>${'./<a class ="nav" href="/local"> local </a>'+' / '+mapedDir}</h4>
         `);
+
         for (let i = 0; i < data.length; i++) {
           let stats = await checkStats(path+"/"+data[i]);
           let color = "white";
@@ -139,6 +142,7 @@ async function routLocal(req, res) {
         </body>
         </html>
         `);
+        console.log("200  OK  GET: "+req.url);
       })
       .catch((error) => {
         res.end("No such file or Directory");
@@ -149,6 +153,7 @@ async function routLocal(req, res) {
       .readFile(path)
       .then((data) => {
         res.end(data);
+        console.log("200  OK  GET: "+req.url);
       })
       .catch((error) => {
         res.end("Error");
@@ -255,5 +260,29 @@ async function checkStats(path) {
   }
   return stats
 }
-server.listen(4000);
-console.log("4000 listing");
+import * as os from "os";
+
+function getIPv4Addresses() {
+  const interfaces = os.networkInterfaces();
+  const addresses = [];
+  
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      // Skip over internal (i.e., 127.0.0.1) and non-IPv4 addresses
+      if (iface.family === 'IPv4' && !iface.internal) {
+        addresses.push({
+          name,
+          address: iface.address
+        });
+        console.log(`open brower in your mobile and go to: "${iface.address}:${port}"`)
+      }
+    }
+  }
+
+  return addresses;
+}
+
+getIPv4Addresses()
+
+server.listen(port);
+console.log(`Server is listing at http://localhost:${port}`);
