@@ -82,6 +82,8 @@ function handleRouts(req, res) {
   }
 }
 
+
+
 async function routLocal(req, res, pathname) {
   let filePath = "." + decodeURIComponent(pathname.slice(6));
   if (pathname === "/local") {
@@ -103,7 +105,7 @@ async function routLocal(req, res, pathname) {
       let preDir = "";
       let mappedDir = filePath.slice(2).split("/").map((value, i) => {
         preDir += "/" + encodeURIComponent(value);
-        return `<a class="nav-link" href="/local${preDir}">${value}</a>`;
+        return `<a class="nav-link" href="/local${preDir}" title="${value}">${value}</a>`;
       }).join(" / ");
 
       res.write(`
@@ -141,10 +143,17 @@ async function routLocal(req, res, pathname) {
               padding: 10px;
               border-radius: 5px;
               margin-bottom: 20px;
+              overflow: auto;
+              white-space: nowrap;
             }
             .nav-link {
               color: #007bff;
               text-decoration: none;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              max-width: 150px;
+              display: inline-block;
             }
             .nav-link:hover {
               text-decoration: underline;
@@ -169,12 +178,29 @@ async function routLocal(req, res, pathname) {
               text-decoration: none;
               color: #333;
               margin: 5px;
+              overflow: hidden;
             }
             .file-item.directory {
               background-color: #fff3cd;
             }
+            .file-item.directory::before {
+              content: "📁 ";
+              margin-right: 5px;
+            }
             .file-item:hover {
               color: #007bff;
+            }
+            .file-name {
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+              max-width: 70%;
+            }
+            .file-ext {
+              font-size: 0.8em;
+              color: #666;
+              margin-left: 5px;
+              white-space: nowrap;
             }
           </style>
         </head>
@@ -184,7 +210,7 @@ async function routLocal(req, res, pathname) {
           </div>
           <div class="container">
             <div class="breadcrumbs">
-              <a class="nav-link" href="/local">local</a> / ${mappedDir}
+              <a class="nav-link" href="/local" title="local">local</a> / ${mappedDir}
             </div>
             <div class="file-list">
       `);
@@ -194,8 +220,24 @@ async function routLocal(req, res, pathname) {
         let subStats = await checkStats(subPath);
         let isDir = subStats && subStats.isDirectory();
         let className = isDir ? "file-item directory" : "file-item";
+        let displayName;
+
+        if (isDir) {
+          displayName = data[i];
+        } else {
+          let ext = path.extname(data[i]);
+          if (ext) {
+            let nameWithoutExt = path.basename(data[i], ext);
+            displayName = `<span class="file-name">${nameWithoutExt}</span><span class="file-ext">${ext}</span>`;
+          } else {
+            displayName = data[i];
+          }
+        }
+
         res.write(`
-          <a href="${pathname + '/' + data[i]}" class="${className}">${data[i]}</a>
+          <a href="${pathname + '/' + data[i]}" class="${className}" title="${data[i]}">
+            ${displayName}
+          </a>
         `);
       }
       res.end(`
@@ -278,13 +320,6 @@ function renderHome(req, res) {
 }
 
 function renderClient(req, res) {
-  const query = url.parse(req.url, true).query;
-  let message = '';
-  if (query.upload === 'success') {
-    message = '<p style="color: green;">File uploaded successfully.</p>';
-  } else if (query.upload === 'error') {
-    message = '<p style="color: red;">Error uploading file.</p>';
-  }
   res.writeHead(200, { "content-type": "text/html" });
   res.end(`
     <html lang="en">
@@ -342,6 +377,39 @@ function renderClient(req, res) {
         input[type="submit"]:hover {
           background-color: #0056b3;
         }
+        input[type="submit"]:disabled {
+          background-color: #cccccc;
+          cursor: not-allowed;
+        }
+        #progressContainer {
+          margin-top: 20px;
+          display: none;
+        }
+        #progressText {
+          font-size: 14px;
+          margin-bottom: 5px;
+        }
+        #progressBar {
+          width: 100%;
+          height: 20px;
+          border: 1px solid #ddd;
+          border-radius: 5px;
+          background-color: #f0f0f0;
+        }
+        #progressBar::-webkit-progress-bar {
+          background-color: #f0f0f0;
+        }
+        #progressBar::-webkit-progress-value {
+          background-color: #007bff;
+        }
+        #progressInfo {
+          font-size: 12px;
+          color: #555;
+          margin-top: 5px;
+        }
+        #message {
+          margin-bottom: 15px;
+        }
       </style>
     </head>
     <body>
@@ -350,14 +418,78 @@ function renderClient(req, res) {
       </div>
       <div class="container">
         <div class="upload-box">
-          ${message}
-          <form action="/client/upload" method="post" enctype="multipart/form-data">
+          <div id="message"></div>
+          <form id="uploadForm" action="/client/upload" method="post" enctype="multipart/form-data">
             <label for="file">Upload a file to the local PC:</label>
-            <input id="file" type="file" name="file" />
+            <input id="file" type="file" name="file" required />
             <input type="submit" value="Upload" />
           </form>
+          <div id="progressContainer">
+            <div id="progressText">Uploading: 0%</div>
+            <progress id="progressBar" value="0" max="100"></progress>
+            <div id="progressInfo"></div>
+          </div>
         </div>
       </div>
+      <script>
+        document.getElementById("uploadForm").addEventListener("submit", (event) => {
+          event.preventDefault();
+          const form = event.target;
+          const submitButton = form.querySelector('input[type="submit"]');
+          submitButton.disabled = true;
+          document.getElementById("progressContainer").style.display = "block";
+          document.getElementById("message").innerHTML = "";
+
+          const formData = new FormData(form);
+          const xhr = new XMLHttpRequest();
+          xhr.open("POST", form.action, true);
+
+          // Track upload progress
+          xhr.upload.addEventListener("progress", (event) => {
+            if (event.lengthComputable) {
+              const percentage = (event.loaded / event.total * 100).toFixed(2);
+              const timeElapsed = (Date.now() - startTime) / 1000; // in seconds
+              const speed = (event.loaded / timeElapsed / 1024).toFixed(2); // KB/s
+              const timeRemaining = ((event.total - event.loaded) / (event.loaded / timeElapsed)).toFixed(0); // seconds
+              document.getElementById("progressText").textContent = \`Uploading: \${percentage}%\`;
+              document.getElementById("progressBar").value = percentage;
+              document.getElementById("progressInfo").textContent = 
+                \`Speed: \${speed} KB/s, Time Remaining: \${timeRemaining} s\`;
+            }
+          });
+
+          // Record start time and send the request
+          const startTime = Date.now();
+          xhr.send(formData);
+
+          // Handle completion
+          xhr.onload = () => {
+            submitButton.disabled = false;
+            document.getElementById("progressContainer").style.display = "none";
+            if (xhr.status === 200) {
+              try {
+                const response = JSON.parse(xhr.responseText);
+                if (response.status === 'success') {
+                  document.getElementById("message").innerHTML = '<p style="color: green;">File uploaded successfully.</p>';
+                } else {
+                  document.getElementById("message").innerHTML = '<p style="color: red;">Error uploading file.</p>';
+                }
+              } catch (e) {
+                document.getElementById("message").innerHTML = '<p style="color: red;">Upload failed.</p>';
+              }
+            } else {
+              document.getElementById("message").innerHTML = \`<p style="color: red;">Upload failed with status: \${xhr.status}</p>\`;
+            }
+          };
+
+          // Handle errors
+          xhr.onerror = () => {
+            submitButton.disabled = false;
+            document.getElementById("progressContainer").style.display = "none";
+            document.getElementById("message").innerHTML = '<p style="color: red;">Upload error occurred.</p>';
+          };
+        });
+      </script>
     </body>
     </html>
   `);
@@ -462,8 +594,9 @@ function routUpload(req, res) {
       }
     }
 
-    res.writeHead(302, { "Location": `/client?upload=${uploadStatus}` });
-    res.end();
+    // Send JSON response instead of redirect
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ status: uploadStatus }));
   });
 }
 
