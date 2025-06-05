@@ -17,7 +17,8 @@ But the problem that I faced was when upload files to server through client this
 - **Path Handling**: Used `path` and `url` modules to handle file paths and URLs safely across platforms.
 - **Responsive Design**: Applied  CSS for a clean look with consistent colors.
 - **per_localshare:** This orignal code which is written by me is pre_localshare.mjs. You can check it also. 
-## Features Enhanced by Grok
+
+## Features Enhanced by Using Grok
 
 - **File Upload Handling**: Added `/client/upload` route to process `multipart/form-data` uploads. Files are saved to an `uploads/` directory using `fs.writeFile`. Sanitized filenames with `path.basename` for security.
 - **Improved UI**: Updated `/`, `/local`, and `/client` pages with cleaner, responsive HTML/CSS. Kept your color scheme (`#007bff`, `#f0f0f0`) and used flexbox for file lists and box shadows for visual depth.
@@ -31,7 +32,7 @@ But the problem that I faced was when upload files to server through client this
 
 ## Setup
 
-1. Clone Repo...
+1. Clone Repo... or just download the **localshare** file
 2. Open a terminal in the directory and run:
    ```bash
    node localserver.mjs 
