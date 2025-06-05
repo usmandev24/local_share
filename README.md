@@ -64,4 +64,4 @@ Copywrite 2025 Usman Ghani (usmandev24) MIT License. Free to modify but include 
 
 ## Acknowledgments
 
-Built with Node.js built-in modules. Enhanced by Grok (xAI) .
+Built with Node.js built-in modules. Files upload fuctionality added with help of Gork (xAi).
