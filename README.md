@@ -16,7 +16,8 @@ But the problem that I faced was when upload files to server through client this
 - **Network Discovery**: Added `os.networkInterfaces()` to log all IPv4 addresses, allowing access from other devices on the network (e.g., `192.168.1.x:4000`).
 - **Path Handling**: Used `path` and `url` modules to handle file paths and URLs safely across platforms.
 - **Responsive Design**: Applied  CSS for a clean look with consistent colors.
-- **per_localshare:** This orignal code which is written by me is pre_localshare.mjs. You can check it also. 
+- **per_localshare:** This orignal code which is written by me is pre_localshare.mjs. You can check it also.
+- **File logo** : Added logos with files according to there file types and improved overall design.
 
 ## Features Enhanced by Using Grok
 
@@ -32,7 +33,8 @@ But the problem that I faced was when upload files to server through client this
 
 ## Setup
 
-1. Clone Repo... or just download the **localshare** file
+1. Clone Repo... or just download the **[localshare.mjs](https://github.com/usmandev24/local_share/blob/master/localshare.mjs)** file.
+You must have node.js installed.
 2. Open a terminal in the directory and run:
    ```bash
    node localserver.mjs 

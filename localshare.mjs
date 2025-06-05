@@ -138,7 +138,7 @@ async function routLocal(req, res, pathname) {
             }
             .breadcrumbs {
               position: fixed;
-              top: 60px;
+              top: 55px;
               left: 0;
               width: 100%;
               z-index: 999;
@@ -169,6 +169,7 @@ async function routLocal(req, res, pathname) {
               display: flex;
               flex-wrap: wrap;
               gap: 15px;
+              justify-content: center;
             }
             .file-item {
               display: flex;
@@ -177,15 +178,17 @@ async function routLocal(req, res, pathname) {
               background-color: white;
               border: 1px solid #ddd;
               border-radius: 5px;
-              padding: 15px;
-              width: 200px;
-              height: 50px;
+              padding: 10px;
+              width:  250px;
+              min-height: 50px;
+              max-height : auto;
               text-align: center;
-              box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+              box-shadow: 0 3px 6px rgba(0, 0, 0, 0.38);
               text-decoration: none;
               color: #333;
               margin: 5px;
-              overflow: hidden;
+              overflow: scroll;
+              font-size: 1.1rem;
             }
             .file-item.directory {
               background-color: #fff3cd;
@@ -198,10 +201,10 @@ async function routLocal(req, res, pathname) {
               color: #007bff;
             }
             .file-name {
-              overflow: hidden;
-              text-overflow: ellipsis;
-              white-space: nowrap;
-              max-width: 70%;
+              overflow: scroll;
+              white-space: wrap;
+              max-width: 80%;
+              font-size: 1.1rem;
             }
             .file-ext {
               font-size: 0.8em;
@@ -221,7 +224,7 @@ async function routLocal(req, res, pathname) {
           <div class="container">
             <div class="file-list">
       `);
-
+      
       for (let i = 0; i < data.length; i++) {
         let subPath = filePath + "/" + data[i];
         let subStats = await checkStats(subPath);
@@ -233,9 +236,11 @@ async function routLocal(req, res, pathname) {
           displayName = data[i];
         } else {
           let ext = path.extname(data[i]);
+          
           if (ext) {
+            let emoji = setEmoji(ext);
             let nameWithoutExt = path.basename(data[i], ext);
-            displayName = `<span class="file-name">${nameWithoutExt}</span><span class="file-ext">${ext}</span>`;
+            displayName = `<span class="file-name">${emoji} ${nameWithoutExt}</span><span class="file-ext">${ext}</span>`;
           } else {
             displayName = data[i];
           }
@@ -507,6 +512,7 @@ function renderClient(req, res) {
                 const response = JSON.parse(xhr.responseText);
                 if (response.status === 'success') {
                   document.getElementById("message").innerHTML = '<p style="color: green;">File uploaded successfully.</p>';
+                  document.getElementById("uploadForm").reset();
                 } else {
                   document.getElementById("message").innerHTML = '<p style="color: red;">Error uploading file.</p>';
                 }
@@ -673,6 +679,30 @@ function getIPv4Addresses() {
   return addresses;
 }
 
+function setEmoji(ext) {
+  const extdata = {
+        video: [".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".mpeg", ".mpg",
+           ".3gp", ".m4v", ".ts", ".vob", ".rm", ".rmvb"],
+        audio: [".mp3", ".wav", ".aac", ".flac", ".ogg", ".m4a", ".wma", ".alac", ".aiff", ".opus"],
+        pic : [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff", ".tif", ".svg", ".heic"],
+        app: [".sh", ".bin", ".run", ".AppImage", ".deb", ".rpm", ".tar.gz", ".tar.xz", ".exe", 
+          ".msi", ".bat", ".cmd", ".ps1", ".app", ".dmg", ".pkg", ".command"],
+        doc :[".txt",".epub",".js", ".py",".mjs",".css", ".md", ".pdf", ".doc", ".docx", ".odt", ".rtf", ".tex", ".xls", ".xlsx", ".ods", ".csv", ".tsv", ".ppt", ".pptx", ".odp"]
+
+      };
+  const emodata = {
+    video: "🎞️",
+    audio:"🎵", pic: "🖼️", app:"💾", doc : "📄"
+  }
+  let emoji = "";
+  for (let key of Object.keys(extdata)) {
+    let list = extdata[key];
+    if (list.includes(ext)) {
+      emoji = emodata[key];
+    }
+  }
+  return emoji;
+}
 getIPv4Addresses();
 
 server.listen(port);
