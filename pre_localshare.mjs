@@ -89,8 +89,11 @@ async function routLocal(req, res) {
         <style>
            .home {
               text-align : center;
-              background-color :rgb(175, 175, 175) ;
+              background-color :rgb(187, 243, 255) ;
               color : white;
+              width: 100vw;
+              margin: 0;
+              padding : .5rem
             }
             a {
               text-decoration : none;
@@ -100,13 +103,9 @@ async function routLocal(req, res) {
               margin: 0.5rem 1rem;
             }
             .nav {
-              background-color:rgb(250, 223, 149);
-              border-radius: 3px;
               padding:0 1px;
-              padding-bottom : 0;
+              padding-bottom : 0; 
               margin: 1px;
-              border-bottom : 1px solid gray;
-              
             }
             .files  {
               background-color:rgb(246, 241, 241);
@@ -117,38 +116,65 @@ async function routLocal(req, res) {
               width: max-content;
             }
             h4 {
-             background-color: rgb(164, 164, 164);
-             padding :.2rem;
-             border-radius: 3px;
+             background-color: rgb(218, 250, 254);
+             padding :.4rem;
+             magrin: 0;
+             margin-top : -.1rem;
             }
             .yellow {
-              background-color:rgb(250, 247, 89);
+              background-color:rgb(255, 253, 165);
             }
             .files>a {
               color:black;
             }
+            .topbar {
+            position :fixed;
+            top: 0;
+            left: 0;
+            z-index: 10;
+            }
+            .body {
+              position: absolute;
+              top : 5rem;
+              left : 1rem;
+              width: auto;
+              height: auto;
+              z-index: 1;
+            }
         </style>
         <body>
+        <div class = "topbar">
         <h1 class = "home">
          <a  href="/" >LocalShare</a>
         </h1>
         <h4>${'./<a class ="nav" href="/local"> local </a>'+' / '+mapedDir}</h4>
+        </div>
+        <div class = "body">
         `);
 
         for (let i = 0; i < data.length; i++) {
           let stats = await checkStats(path+"/"+data[i]);
           let color = "white";
+          let fileimg = "";
           try {
-            if (stats.isDirectory()) color = "yellow"
-          } catch {
-
-          }
+            if (stats.isDirectory()) {
+              color = "yellow";
+              fileimg = "📁"
+            } 
+          } catch { }
           res.write(`
           <h3 class = "files ${color}">
-          <a  href="${base + "/" + data[i]}">${data[i]} </a>
-          </h3>`);
+          <a  href="${base + "/" + data[i]}">${fileimg+ data[i]} </a>
+          </h3>
+          `);
+        }
+        if (data.length === 0) {
+          res.write(`
+            <h2>This folder is empty</h2> 
+            `)
         }
         res.end(`
+        </div>
         </body>
         </html>
         `);
@@ -188,7 +214,7 @@ function renderHome(req, res) {
   body {
     margin: 2rem;
     margin-top: 1rem;
-    background-color: rgb(175, 175, 175);
+    background-color: rgb(235, 248, 253);
     text-align: center;
   }
   a {
@@ -202,10 +228,10 @@ function renderHome(req, res) {
 <body>
   <h1>Local Share</h1>
   <h3>
-    <a href="/local" >Get Local files (pc on which server runing).</a>
+    <a href="/local" >Browse Local Files</a>
   </h3>
   <h3>
-    <a href="/client"> Send Client files to Local.</a>
+    <a href="/client">Upload Files</a>
   </h3>
   <p>Share files semelessly between you your devices on local network.<p>
 </body>
