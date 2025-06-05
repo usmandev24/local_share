@@ -2,6 +2,11 @@
 
 LocalShare is a lightweight Node.js server for sharing files over a local network. It uses only built-in Node.js modules (`http`, `fs`, `url`, `path`, `os`) to keep things simple and dependency-free. The server runs on port `4000` and works on Windows, macOS, and Linux.
 
+# About this project:
+
+This project I made by chance . Acctually I was just learing node.js and decided to do some practicall and this type of fileserver I read on Eloquent JavaScript book so I decided to expand this and increase its fuctionality.
+But the problem that I faced was when upload files to server through client this was new for me and the book "Node.js web development server side using practical examples" I was just reached to chapter 5 and may be on next chapters book will guide on this but as a curiosity I decided to take help from ai which actually worked and I learned a lot. 
+
 ## Features Implemented by Me
 
 - **HTTP Server Setup**: Built a server with `http.createServer()` to handle requests on port `4000`.

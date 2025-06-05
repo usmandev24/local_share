@@ -82,8 +82,6 @@ function handleRouts(req, res) {
   }
 }
 
-
-
 async function routLocal(req, res, pathname) {
   let filePath = "." + decodeURIComponent(pathname.slice(6));
   if (pathname === "/local") {
@@ -123,6 +121,11 @@ async function routLocal(req, res, pathname) {
               padding: 0;
             }
             .header {
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100%;
+              z-index: 1000;
               background-color: #007bff;
               color: white;
               padding: 15px;
@@ -133,16 +136,15 @@ async function routLocal(req, res, pathname) {
               text-decoration: none;
               font-size: 24px;
             }
-            .container {
-              max-width: 1200px;
-              margin: 20px auto;
-              padding: 0 15px;
-            }
             .breadcrumbs {
+              position: fixed;
+              top: 60px;
+              left: 0;
+              width: 100%;
+              z-index: 999;
               background-color: #e9ecef;
               padding: 10px;
               border-radius: 5px;
-              margin-bottom: 20px;
               overflow: auto;
               white-space: nowrap;
             }
@@ -157,6 +159,11 @@ async function routLocal(req, res, pathname) {
             }
             .nav-link:hover {
               text-decoration: underline;
+            }
+            .container {
+              max-width: 1200px;
+              margin: 0 auto;
+              padding: 120px 15px 0;
             }
             .file-list {
               display: flex;
@@ -208,10 +215,10 @@ async function routLocal(req, res, pathname) {
           <div class="header">
             <a href="/">LocalShare</a>
           </div>
+          <div class="breadcrumbs">
+            <a class="nav-link" href="/local" title="local">local</a> / ${mappedDir}
+          </div>
           <div class="container">
-            <div class="breadcrumbs">
-              <a class="nav-link" href="/local" title="local">local</a> / ${mappedDir}
-            </div>
             <div class="file-list">
       `);
 
@@ -279,15 +286,27 @@ function renderHome(req, res) {
           margin: 0;
           padding: 0;
         }
+        .header {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          z-index: 1000;
+          background-color: #007bff;
+          color: white;
+          padding: 15px;
+          text-align: center;
+        }
+        .header a {
+          color: white;
+          text-decoration: none;
+          font-size: 24px;
+        }
         .container {
           max-width: 800px;
           margin: 0 auto;
-          padding: 50px 15px;
+          padding: 80px 15px 0;
           text-align: center;
-        }
-        h1 {
-          font-size: 32px;
-          margin-bottom: 20px;
         }
         p {
           font-size: 16px;
@@ -308,8 +327,10 @@ function renderHome(req, res) {
       </style>
     </head>
     <body>
+      <div class="header">
+        <a href="/">LocalShare</a>
+      </div>
       <div class="container">
-        <h1>LocalShare</h1>
         <p>Share files easily between devices on your local network.</p>
         <a href="/local" class="btn">Browse Local Files</a>
         <a href="/client" class="btn">Upload Files</a>
@@ -336,6 +357,11 @@ function renderClient(req, res) {
           padding: 0;
         }
         .header {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          z-index: 1000;
           background-color: #007bff;
           color: white;
           padding: 15px;
@@ -348,8 +374,8 @@ function renderClient(req, res) {
         }
         .container {
           max-width: 600px;
-          margin: 20px auto;
-          padding: 0 15px;
+          margin: 0 auto;
+          padding: 80px 15px 0;
         }
         .upload-box {
           background-color: white;
@@ -380,6 +406,15 @@ function renderClient(req, res) {
         input[type="submit"]:disabled {
           background-color: #cccccc;
           cursor: not-allowed;
+        }
+        #cancelUpload {
+          background-color: #dc3545;
+          color: white;
+          border: none;
+          padding: 10px 20px;
+          border-radius: 5px;
+          cursor: pointer;
+          margin-left: 10px;
         }
         #progressContainer {
           margin-top: 20px;
@@ -423,6 +458,7 @@ function renderClient(req, res) {
             <label for="file">Upload a file to the local PC:</label>
             <input id="file" type="file" name="file" required />
             <input type="submit" value="Upload" />
+            <button type="button" id="cancelUpload" style="display: none;">Cancel</button>
           </form>
           <div id="progressContainer">
             <div id="progressText">Uploading: 0%</div>
@@ -436,7 +472,9 @@ function renderClient(req, res) {
           event.preventDefault();
           const form = event.target;
           const submitButton = form.querySelector('input[type="submit"]');
+          const cancelButton = document.getElementById("cancelUpload");
           submitButton.disabled = true;
+          cancelButton.style.display = "inline-block";
           document.getElementById("progressContainer").style.display = "block";
           document.getElementById("message").innerHTML = "";
 
@@ -444,13 +482,12 @@ function renderClient(req, res) {
           const xhr = new XMLHttpRequest();
           xhr.open("POST", form.action, true);
 
-          // Track upload progress
           xhr.upload.addEventListener("progress", (event) => {
             if (event.lengthComputable) {
               const percentage = (event.loaded / event.total * 100).toFixed(2);
-              const timeElapsed = (Date.now() - startTime) / 1000; // in seconds
-              const speed = (event.loaded / timeElapsed / 1024).toFixed(2); // KB/s
-              const timeRemaining = ((event.total - event.loaded) / (event.loaded / timeElapsed)).toFixed(0); // seconds
+              const timeElapsed = (Date.now() - startTime) / 1000;
+              const speed = (event.loaded / timeElapsed / 1024).toFixed(2);
+              const timeRemaining = ((event.total - event.loaded) / (event.loaded / timeElapsed)).toFixed(0);
               document.getElementById("progressText").textContent = \`Uploading: \${percentage}%\`;
               document.getElementById("progressBar").value = percentage;
               document.getElementById("progressInfo").textContent = 
@@ -458,13 +495,12 @@ function renderClient(req, res) {
             }
           });
 
-          // Record start time and send the request
           const startTime = Date.now();
           xhr.send(formData);
 
-          // Handle completion
           xhr.onload = () => {
             submitButton.disabled = false;
+            cancelButton.style.display = "none";
             document.getElementById("progressContainer").style.display = "none";
             if (xhr.status === 200) {
               try {
@@ -482,12 +518,23 @@ function renderClient(req, res) {
             }
           };
 
-          // Handle errors
           xhr.onerror = () => {
             submitButton.disabled = false;
+            cancelButton.style.display = "none";
             document.getElementById("progressContainer").style.display = "none";
             document.getElementById("message").innerHTML = '<p style="color: red;">Upload error occurred.</p>';
           };
+
+          xhr.onabort = () => {
+            submitButton.disabled = false;
+            cancelButton.style.display = "none";
+            document.getElementById("progressContainer").style.display = "none";
+            document.getElementById("message").innerHTML = '<p style="color: orange;">Upload canceled.</p>';
+          };
+
+          cancelButton.addEventListener("click", () => {
+            xhr.abort();
+          });
         });
       </script>
     </body>
@@ -551,8 +598,7 @@ function routUpload(req, res) {
       return;
     }
 
-    let uploadStatus = 'error'; // Default to error
-
+    let uploadStatus = 'error';
     for (let i = 0; i < partStarts.length; i++) {
       const partStart = partStarts[i] + boundaryBuffer.length;
       const partEnd = i < partStarts.length - 1 ? partStarts[i + 1] : closingIndex;
@@ -594,7 +640,6 @@ function routUpload(req, res) {
       }
     }
 
-    // Send JSON response instead of redirect
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ status: uploadStatus }));
   });
