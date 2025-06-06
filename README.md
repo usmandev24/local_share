@@ -22,10 +22,8 @@ But the problem that I faced was when upload files to server through client this
 ## Features Enhanced by Using Grok
 
 - **File Upload Handling**: Added `/client/upload` route to process `multipart/form-data` uploads. Files are saved to an `uploads/` directory using `fs.writeFile`. Sanitized filenames with `path.basename` for security.
-- **Improved UI**: Updated `/`, `/local`, and `/client` pages with cleaner, responsive HTML/CSS. Kept your color scheme (`#007bff`, `#f0f0f0`) and used flexbox for file lists and box shadows for visual depth.
+- **Improved UI**: Updated `/`, `/local`, and `/client` pages with cleaner, responsive HTML/CSS.
 - **Fixed typo**: Corrected console log typo (`"listing"` to `"listening"`), fixed file link generation in `/local`, and improved `checkStats` to return `null` for 404 cases.
-- **Upload Feedback**: Added query parameters (`?upload=success` or `?upload=error`) to `/client` redirect after uploads. Displays green success or red error message above the form.
-
 ## Prerequisites
 
 - **Node.js**: Version 14+ (uses ES modules with `import`).
