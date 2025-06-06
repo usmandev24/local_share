@@ -115,7 +115,7 @@ async function routLocal(req, res, pathname) {
           <style>
             body {
               font-family: Arial, sans-serif;
-              background-color: #f0f0f0;
+              background-color:rgb(228, 228, 228);
               color: #333;
               margin: 0;
               padding: 0;
@@ -142,7 +142,7 @@ async function routLocal(req, res, pathname) {
               left: 0;
               width: 100%;
               z-index: 999;
-              background-color: #e9ecef;
+              background-color:rgb(229, 237, 246);
               padding: 10px;
               border-radius: 5px;
               overflow: auto;
@@ -165,33 +165,24 @@ async function routLocal(req, res, pathname) {
               margin: 0 auto;
               padding: 120px 15px 0;
             }
-            .file-list {
-              display: flex;
-              flex-wrap: wrap;
-              gap: 15px;
-              justify-content: center;
-            }
+            
             .file-item {
-              display: flex;
-              align-items: center;
-              justify-content: center;
+              display: block;
+              text-align :left;
               background-color: white;
-              border: 1px solid #ddd;
               border-radius: 5px;
               padding: 10px;
-              width:  250px;
-              min-height: 50px;
-              max-height : auto;
-              text-align: center;
-              box-shadow: 0 3px 6px rgba(0, 0, 0, 0.38);
+              width:  85vw;
+              min-height : 1.8rem;
+              max-height: auto;
               text-decoration: none;
               color: #333;
-              margin: 5px;
-              overflow: scroll;
-              font-size: 1.1rem;
+              margin: .5rem;
+              overflow: hidden;
+              font-size: 1.2rem;
             }
             .file-item.directory {
-              background-color: #fff3cd;
+              background-color:rgb(255, 240, 190);
             }
             .file-item.directory::before {
               content: "📁 ";
@@ -201,10 +192,10 @@ async function routLocal(req, res, pathname) {
               color: #007bff;
             }
             .file-name {
-              overflow: scroll;
+              overflow: hidden;
               white-space: wrap;
               max-width: 80%;
-              font-size: 1.1rem;
+              font-size: 1.2rem;
             }
             .file-ext {
               font-size: 0.8em;
@@ -240,7 +231,7 @@ async function routLocal(req, res, pathname) {
           if (ext) {
             let emoji = setEmoji(ext);
             let nameWithoutExt = path.basename(data[i], ext);
-            displayName = `<span class="file-name">${emoji} ${nameWithoutExt}</span><span class="file-ext">${ext}</span>`;
+            displayName = `<span class="file-name">${emoji} ${nameWithoutExt} </span><span class="file-ext">${ext}</span>`;
           } else {
             displayName = data[i];
           }
@@ -266,9 +257,15 @@ async function routLocal(req, res, pathname) {
   } else {
     try {
       let data = await fs.readFile(filePath);
+      let ext = path.extname(filePath);
+      let emoji = setEmoji(ext); ext = ext.slice(1);
+      if (emoji === "🎞️" && ext != "mkv") ext = `video/${ext}`; console.log(ext)
+      const stat = statSync(filePath); 
+      res.writeHead(200, {"content-type":ext, "content-length": stat.size});
       res.end(data);
       console.log("200  OK  GET: " + req.url);
     } catch (error) {
+      console.log(error)
       res.end(notFound);
       console.log("404  Forbidden GET: " + req.url);
     }
@@ -660,6 +657,7 @@ async function checkStats(filePath) {
 }
 
 import * as os from "node:os";
+import { createReadStream, statSync } from "node:fs";
 
 function getIPv4Addresses() {
   const interfaces = os.networkInterfaces();
