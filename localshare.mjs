@@ -257,11 +257,6 @@ async function routLocal(req, res, pathname) {
   } else {
     try {
       let data = await fs.readFile(filePath);
-      let ext = path.extname(filePath);
-      let emoji = setEmoji(ext); ext = ext.slice(1);
-      if (emoji === "🎞️" && ext != "mkv") ext = `video/${ext}`; console.log(ext)
-      const stat = statSync(filePath); 
-      res.writeHead(200, {"content-type":ext, "content-length": stat.size});
       res.end(data);
       console.log("200  OK  GET: " + req.url);
     } catch (error) {
