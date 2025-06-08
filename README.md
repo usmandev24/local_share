@@ -7,6 +7,18 @@ LocalShare is a lightweight Node.js server for sharing files over a local networ
 This project I made by chance . Acctually I was just learing node.js and decided to do some practicall and this type of fileserver I read on Eloquent JavaScript book so I decided to expand this and increase its fuctionality.
 But the problem that I faced was when upload files to server through client this was new for me and the book "Node.js web development server side using practical examples" I was just reached to chapter 5 and may be on next chapters book will guide on this but as a curiosity I decided to take help from ai which actually worked and I learned a lot. 
 
+## ScreenShots 
+Home page: 
+
+![image](https://github.com/user-attachments/assets/41925d1b-4487-4c3e-a229-6ffb89474ca4)
+Local Files:
+
+![image](https://github.com/user-attachments/assets/2dbf9ef5-37e4-461c-9bbd-01de86145f0c)
+
+Uploading Files:
+
+![IMG_20250606_101333](https://github.com/user-attachments/assets/5cb50f5b-00e8-4d94-a916-f7b72dcf77e5)
+
 ## Features Implemented by Me
 
 - **HTTP Server Setup**: Built a server with `http.createServer()` to handle requests on port `4000`.
@@ -22,10 +34,8 @@ But the problem that I faced was when upload files to server through client this
 ## Features Enhanced by Using Grok
 
 - **File Upload Handling**: Added `/client/upload` route to process `multipart/form-data` uploads. Files are saved to an `uploads/` directory using `fs.writeFile`. Sanitized filenames with `path.basename` for security.
-- **Improved UI**: Updated `/`, `/local`, and `/client` pages with cleaner, responsive HTML/CSS. Kept your color scheme (`#007bff`, `#f0f0f0`) and used flexbox for file lists and box shadows for visual depth.
+- **Improved UI**: Updated `/`, `/local`, and `/client` pages with cleaner, responsive HTML/CSS.
 - **Fixed typo**: Corrected console log typo (`"listing"` to `"listening"`), fixed file link generation in `/local`, and improved `checkStats` to return `null` for 404 cases.
-- **Upload Feedback**: Added query parameters (`?upload=success` or `?upload=error`) to `/client` redirect after uploads. Displays green success or red error message above the form.
-
 ## Prerequisites
 
 - **Node.js**: Version 14+ (uses ES modules with `import`).
